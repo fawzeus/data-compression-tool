@@ -3,13 +3,13 @@
 
 #include <stdio.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include "types.h" 
 
-typedef struct mapNode
-{
+typedef struct {
     char key;
     uint32 val;
-    mapNode* next;
+    struct mapNode* next;
 } mapNode;
 
 typedef mapNode* map;
@@ -21,9 +21,9 @@ typedef mapNode* map;
  * @param len: the len of string
  * @return map of occurences
 */
-map creteMap(char* str, size_t len);
+errorId_t creteMap(char* str, size_t len);
 
-typedef struct huffmanNode {
+typedef struct {
     struct huffmanNode* leftChild;  
     struct huffmanNode* rightChild; 
     uint8_t bit;                    
@@ -39,5 +39,6 @@ typedef huffmanNode* huffmanTree;
  * @return A status indicating whether the creation was successful.
  */
 errorId_t createHuffmanTree(huffmanTree* tree, const char* filePath);
+
 
 #endif // UTILS_H

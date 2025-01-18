@@ -6,4 +6,5 @@ typedef uint32_t uint32;
 typedef enum {
     SUCCESS = 0,
     FILE_OPENING_ERROR = 1,
+    NULL_POINTER_ERROR = 2,
 } errorId_t;
