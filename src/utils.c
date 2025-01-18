@@ -4,7 +4,7 @@ errorId_t creteMap(char* str, size_t len) {
     errorId_t err = SUCCESS;
     uint32_t count[256] = {0};
     for (int i=0; i < len; i++) {
-        count[str[i]]++;
+        count[(size_t) str[i]]++;
     }
     for(int i=0; i<256; i++){
         if (count[i] != 0){
