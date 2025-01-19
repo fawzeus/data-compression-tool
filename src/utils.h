@@ -6,11 +6,14 @@
 #include <stdlib.h>
 #include "types.h" 
 
-typedef struct {
+typedef struct huffmanNode huffmanNode;
+typedef struct vectorNode vectorNode;
+typedef struct mapNode mapNode;
+
+struct mapNode{
     char key;
     uint32 val;
-    struct mapNode* next;
-} mapNode;
+};
 
 typedef mapNode* map;
 
@@ -23,11 +26,11 @@ typedef mapNode* map;
 */
 errorId_t creteMap(char* str, size_t len);
 
-typedef struct {
-    struct huffmanNode* leftChild;  
-    struct huffmanNode* rightChild; 
-    uint8_t bit;                    
-} huffmanNode;
+struct huffmanNode{
+    huffmanNode* leftChild;  
+    huffmanNode* rightChild; 
+    uint8_t bit;                 
+};
 
 typedef huffmanNode* huffmanTree;
 
@@ -39,6 +42,35 @@ typedef huffmanNode* huffmanTree;
  * @return A status indicating whether the creation was successful.
  */
 errorId_t createHuffmanTree(huffmanTree* tree, const char* filePath);
+
+
+struct vectorNode{
+    mapNode* val;
+    vectorNode* next;
+};
+
+typedef vectorNode* vector;
+/**
+ * a function to create a vector
+ * 
+ * @param vector : a pointer that holds the vector to create
+ * @return A status indicating whether the creation was successful.
+ */
+errorId_t createVector(vector* vect, mapNode* count[256]);
+
+/**
+ * a function to print the content of vector
+ * @param vector : the vector to print
+ * @return void
+ */
+void printVector(vector vect);
+
+/**
+ * a function to sort a vector
+ * @param vector : a pointer that holds the vector to sort
+ * @return A status indicating whether the creation was successful.
+ */
+errorId_t sort(vector* vect);
 
 
 #endif // UTILS_H
