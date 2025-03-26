@@ -45,12 +45,13 @@ errorId_t createHuffmanTree(huffmanTree* tree, const char* filePath){
     if (filePtr == NULL) {
         status = FILE_OPENING_ERROR;
     }
+    // determine the size of file
     if (status == SUCCESS) {
         fseek(filePtr, 0L, SEEK_END);
         fileSize = ftell(filePtr);
         rewind(filePtr);
     }
-    if (fileSize !=0 && status ==SUCCESS){
+    if ((status == SUCCESS) && (fileSize != 0)) {
         str = (char*) malloc((fileSize + 1) * sizeof(char));
         if (str == NULL){
             status = NULL_POINTER_ERROR;
@@ -62,6 +63,8 @@ errorId_t createHuffmanTree(huffmanTree* tree, const char* filePath){
         while ((ch = getc(filePtr)) != EOF) {
             str[index++] = ch;
         }
+        //add end of string char
+        str[index] = '\0';
     }
 
     if (status == SUCCESS) {

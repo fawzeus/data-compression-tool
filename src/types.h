@@ -7,6 +7,7 @@ typedef enum {
     SUCCESS = 0,
     FILE_OPENING_ERROR = 1,
     NULL_POINTER_ERROR = 2,
+    NOT_IMPLEMENTED = 3
 } errorId_t;
 
 typedef enum {

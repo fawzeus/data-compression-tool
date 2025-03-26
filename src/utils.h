@@ -29,7 +29,7 @@ errorId_t creteMap(char* str, size_t len);
 struct huffmanNode{
     huffmanNode* leftChild;  
     huffmanNode* rightChild; 
-    uint8_t bit;                 
+    char ascii;                 
 };
 
 typedef huffmanNode* huffmanTree;
