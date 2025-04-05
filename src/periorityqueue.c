@@ -1,7 +1,50 @@
 #include "periorityqueue.h"
 #include "logger.h"
-/* public functions */
 
+/*******************************  Static functions ********************************/
+
+static errorId_t heapify(periorityQueue* queue) {
+    const char fName[] = "heapify";
+    errorId_t error = SUCCESS;
+    bool isSorted = false;
+    logEnter(fName);
+    /* if the queue is empty its already sorted */
+    if (queue == NULL || (*queue)->next == NULL) {
+        return error;
+    }
+    while ((isSorted == false) && (error == SUCCESS)) {
+        isSorted = true;
+        queueNode* currentNode = *queue;
+        /* swap first two element if not sorted */
+        if((*queue)->val > (*queue)->next->val) {
+            isSorted = false;
+            queueNode auxilairyNode;
+            auxilairyNode.key = (*queue)->key;
+            auxilairyNode.val = (*queue)->val;
+            (*queue)->key = (*queue)->next->key;
+            (*queue)->val = (*queue)->next->val;
+            (*queue)->next->val = auxilairyNode.val;
+            (*queue)->next->key = auxilairyNode.key;
+        }
+        while ((currentNode->next != NULL) && (error == SUCCESS)) {
+            if (currentNode->val > currentNode->next->val) {
+                isSorted = false;
+                queueNode auxilairyNode;
+                auxilairyNode.key = currentNode->key;
+                auxilairyNode.val = currentNode->val;
+                currentNode->key = currentNode->next->key;
+                currentNode->val = currentNode->next->val;
+                currentNode->next->key = auxilairyNode.key;
+                currentNode->next->val = auxilairyNode.val;
+            }
+            currentNode = currentNode->next;
+        }
+    }
+    logLeave(fName);
+    return error;
+}
+
+/*******************************  Public functions *********************************/
 errorId_t isEmpty(periorityQueue queue, bool* isEmptyQueue){
     const char fName[] = "iSEmpty";
     errorId_t error = SUCCESS;
@@ -131,46 +174,4 @@ errorId_t freeQueue(periorityQueue* queue){
     }
     logLeave(fName);
     return status;  
-}
-
-/* Static functions */
-static errorId_t heapify(periorityQueue* queue) {
-    const char fName[] = "heapify";
-    errorId_t error = SUCCESS;
-    bool isSorted = false;
-    logEnter(fName);
-    /* if the queue is empty its already sorted */
-    if (queue == NULL || (*queue)->next == NULL) {
-        return error;
-    }
-    while ((isSorted == false) && (error == SUCCESS)) {
-        isSorted = true;
-        queueNode* currentNode = *queue;
-        /* swap first two element if not sorted */
-        if((*queue)->val > (*queue)->next->val) {
-            isSorted = false;
-            queueNode auxilairyNode;
-            auxilairyNode.key = (*queue)->key;
-            auxilairyNode.val = (*queue)->val;
-            (*queue)->key = (*queue)->next->key;
-            (*queue)->val = (*queue)->next->val;
-            (*queue)->next->val = auxilairyNode.val;
-            (*queue)->next->key = auxilairyNode.key;
-        }
-        while ((currentNode->next != NULL) && (error == SUCCESS)) {
-            if (currentNode->val > currentNode->next->val) {
-                isSorted = false;
-                queueNode auxilairyNode;
-                auxilairyNode.key = currentNode->key;
-                auxilairyNode.val = currentNode->val;
-                currentNode->key = currentNode->next->key;
-                currentNode->val = currentNode->next->val;
-                currentNode->next->key = auxilairyNode.key;
-                currentNode->next->val = auxilairyNode.val;
-            }
-            currentNode = currentNode->next;
-        }
-    }
-    logLeave(fName);
-    return error;
 }
