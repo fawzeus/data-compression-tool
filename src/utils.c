@@ -1,10 +1,10 @@
 #include "utils.h"
-
+#include "periorityqueue.h"
 errorId_t creteMap(char* str, size_t len) {
     errorId_t err = SUCCESS;
     mapNode* count[256] = {NULL};
-    vector vect;
-    for (int i = 0; i < len; i++) {
+    periorityQueue queue = NULL;
+    for (size_t i = 0; i < len; i++) {
         if (count[(size_t) str[i]] == NULL){
             count[(size_t) str[i]] = (mapNode*) malloc(sizeof(mapNode));
             count[(size_t) str[i]]->key = str[i];
@@ -13,17 +13,25 @@ errorId_t creteMap(char* str, size_t len) {
         else {
             count[(size_t) str[i]]->val++;
         }
-    }
+    }/*
     for(int i=0; i<256; i++){
         if (count[i] != NULL){
             printf("%c: %u ",count[i]->key,count[i]->val);
         }
-    }
+    }*/
     puts("");
-    createVector(&vect, count);
-    printVector(vect);
-    sort(&vect);
-    printVector(vect);
+    createPeriorityQueue(&queue, count);
+    for (size_t i = 0; i < len; i++){
+        if(count[i] != NULL) {
+            free(count[i]);
+        }
+    }
+    //createVector(&vect, count);
+    //printVector(vect);
+    print(queue);
+    //sort(&vect);
+    //printVector(vect);
+    err = freeQueue(&queue);
     return err;
 #if 0
     map newMap = NULL;
@@ -40,7 +48,10 @@ errorId_t createHuffmanTree(huffmanTree* tree, const char* filePath){
     FILE *filePtr = NULL;
     size_t fileSize = 0;
     char* str = NULL;
-
+    tree = (huffmanTree*) (sizeof(huffmanTree));
+    if (tree != NULL) {
+        //TODO
+    }
     filePtr = fopen(filePath, "r");
     if (filePtr == NULL) {
         status = FILE_OPENING_ERROR;
@@ -66,11 +77,9 @@ errorId_t createHuffmanTree(huffmanTree* tree, const char* filePath){
         //add end of string char
         str[index] = '\0';
     }
-
     if (status == SUCCESS) {
         status = creteMap(str, fileSize);
     }
-
     return status;
 }
 

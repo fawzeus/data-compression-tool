@@ -2,9 +2,11 @@
 CC = gcc
 
 # Compiler flags:
-#  -g     - adds debugging information to the executable file
-#  -Wall  - turns on most compiler warnings
-CFLAGS  = -Wall
+#  -Wall      - enables most common warnings
+#  -Wextra    - enables extra warnings
+#  -Wpedantic - ensures strict compliance with the C standard
+#  -Werror    - treats all warnings as errors
+CFLAGS  = -Wall -Wextra -Wpedantic -Werror
 
 SOURCE = src/*.c
 
@@ -19,3 +21,5 @@ $(TARGET): $(SOURCE)
 
 clean:
 	rm -f $(TARGET)
+	rm -rf logs/*
+	@echo "Logs and target have been cleaned."
