@@ -13,13 +13,22 @@ typedef enum {
     NOT_IMPLEMENTED = 3
 } errorId_t;
 
+/* Huffman Tree */
+typedef struct huffmanNode huffmanNode;
+typedef huffmanNode* huffmanTree;
+
+struct huffmanNode{
+    huffmanNode* leftChild;
+    huffmanNode* rightChild;
+    uint32 count;
+    char* ascii;     
+};
 
 /* periority Queue */
 typedef struct queueNode queueNode;
 typedef queueNode* periorityQueue;
 struct queueNode{
-    char key;
-    uint32 val;
+    huffmanNode* val;
     queueNode* next;
 };
 
@@ -29,7 +38,6 @@ typedef enum {
     true = 1
 } bool;
 
-typedef struct huffmanNode huffmanNode;
 typedef struct vectorNode vectorNode;
 typedef struct mapNode mapNode;
 
@@ -47,14 +55,5 @@ struct vectorNode{
 };
 
 typedef vectorNode* vector;
-
-
-struct huffmanNode{
-    huffmanNode* leftChild;  
-    huffmanNode* rightChild; 
-    char ascii;                 
-};
-
-typedef huffmanNode* huffmanTree;
 
 #endif

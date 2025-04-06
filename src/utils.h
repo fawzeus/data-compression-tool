@@ -15,7 +15,7 @@
  * @param len: the len of string
  * @return map of occurences
 */
-errorId_t creteMap(char* str, size_t len);
+errorId_t createQueue(periorityQueue* queue, char* str, size_t len);
 
 
 /**
@@ -25,7 +25,7 @@ errorId_t creteMap(char* str, size_t len);
  * @param inputFile: The input file to be used for creating the tree.
  * @return A status indicating whether the creation was successful.
  */
-errorId_t createHuffmanTree(huffmanTree* tree, const char* filePath);
+errorId_t encode(huffmanTree* tree, const char* filePath);
 
 
 /**

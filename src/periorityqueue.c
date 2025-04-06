@@ -16,25 +16,19 @@ static errorId_t heapify(periorityQueue* queue) {
         isSorted = true;
         queueNode* currentNode = *queue;
         /* swap first two element if not sorted */
-        if((*queue)->val > (*queue)->next->val) {
+        if((*queue)->val->count > (*queue)->next->val->count) {
             isSorted = false;
             queueNode auxilairyNode;
-            auxilairyNode.key = (*queue)->key;
             auxilairyNode.val = (*queue)->val;
-            (*queue)->key = (*queue)->next->key;
             (*queue)->val = (*queue)->next->val;
             (*queue)->next->val = auxilairyNode.val;
-            (*queue)->next->key = auxilairyNode.key;
         }
         while ((currentNode->next != NULL) && (error == SUCCESS)) {
-            if (currentNode->val > currentNode->next->val) {
+            if (currentNode->val->count > currentNode->next->val->count) {
                 isSorted = false;
                 queueNode auxilairyNode;
-                auxilairyNode.key = currentNode->key;
                 auxilairyNode.val = currentNode->val;
-                currentNode->key = currentNode->next->key;
                 currentNode->val = currentNode->next->val;
-                currentNode->next->key = auxilairyNode.key;
                 currentNode->next->val = auxilairyNode.val;
             }
             currentNode = currentNode->next;
@@ -59,7 +53,7 @@ errorId_t isEmpty(periorityQueue queue, bool* isEmptyQueue){
     return error;
 }
 
-errorId_t push(periorityQueue* queue, char key, uint32 val) {
+errorId_t push(periorityQueue* queue, huffmanNode* node) {
     const char fName[] = "push";
     errorId_t status = SUCCESS;
     bool isEmptyQueue = false;
@@ -68,13 +62,11 @@ errorId_t push(periorityQueue* queue, char key, uint32 val) {
     if ((status == SUCCESS) && (isEmptyQueue == true)) {
         *queue = (queueNode*) malloc(sizeof(queueNode));
         (*queue)->next = NULL;
-        (*queue)->key = key;
-        (*queue)->val = val;
+        (*queue)->val = node;
     } else  if (isEmptyQueue == false){
         queueNode* newNode = (queueNode*) malloc (sizeof(queueNode));
         newNode->next = *queue;
-        newNode->key = key;
-        newNode->val = val;
+        newNode->val = node;
         *queue = newNode;
     }
     if (status == SUCCESS) {
@@ -83,23 +75,21 @@ errorId_t push(periorityQueue* queue, char key, uint32 val) {
     logLeave(fName);
     return status;
 }
-errorId_t top(periorityQueue queue, queueNode* topNode) {
+errorId_t top(periorityQueue queue, huffmanTree* topNode) {
     const char fName[] = "top";
     errorId_t error = SUCCESS;
     logEnter(fName);
-    if ((queue == NULL) || (topNode == NULL)) {
+    if ((queue == NULL)) {
         error = NULL_POINTER_ERROR;
     }
     if (error == SUCCESS) {
-        topNode->key = queue->key;
-        topNode->val = queue->val;
-        topNode->next = NULL;
+        *topNode = queue->val;
     }
     logLeave(fName);
     return error;
 }
 
-errorId_t pop(periorityQueue* queue, queueNode* topNode) {
+errorId_t pop(periorityQueue* queue, huffmanTree* topNode) {
     const char fName[] = "pop";
     errorId_t status = SUCCESS;
     logEnter(fName);
@@ -108,9 +98,7 @@ errorId_t pop(periorityQueue* queue, queueNode* topNode) {
     }
     if (status == SUCCESS) {
         queueNode* toBeDeleted = *queue;
-        topNode->key = (*queue)->key;
-        topNode->val = (*queue)->val;
-        topNode->next = NULL;
+        *topNode = (*queue)->val;
         (*queue) = (*queue)->next;
         free(toBeDeleted);
     }
@@ -140,7 +128,7 @@ errorId_t print(periorityQueue queue) {
     queueNode* currentNode = queue;
     logEnter(fName);
     while (currentNode != NULL) {
-        printf("%c: %u\n",currentNode->key,currentNode->val);
+        printf("%c: %u\n",*currentNode->val->ascii,currentNode->val->count);
         currentNode = currentNode->next;
     }
     logLeave(fName);
@@ -155,7 +143,21 @@ errorId_t createPeriorityQueue(periorityQueue* queue, mapNode* count[256]) {
     logEnter(fName);
     for (mapIndex = 0; (mapIndex < 256) && (SUCCESS == status); mapIndex++) {
         if(count[mapIndex] != NULL) {
-            status = push(queue, count[mapIndex]->key, count[mapIndex]->val);
+            huffmanNode* newNode = NULL;
+            newNode = (huffmanNode*) malloc(sizeof(huffmanNode));
+            if (newNode == NULL) {
+                status = NULL_POINTER_ERROR;
+            }
+            if(status == SUCCESS) {
+                newNode->ascii = (char*) malloc(sizeof(char));
+            }
+            if (status == SUCCESS) {
+                *newNode->ascii = count[mapIndex]->key;
+                newNode->count = count[mapIndex]->val;
+            }
+            if (status == SUCCESS) {
+                status = push(queue, newNode);
+            }
         }
     }
     logLeave(fName);

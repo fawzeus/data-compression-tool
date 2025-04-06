@@ -1,9 +1,11 @@
 #include "utils.h"
 #include "periorityqueue.h"
-errorId_t creteMap(char* str, size_t len) {
+#include "logger.h"
+errorId_t createQueue(periorityQueue* queue, char* str, size_t len) {
+    const char fName[] = "createQueue";
     errorId_t err = SUCCESS;
     mapNode* count[256] = {NULL};
-    periorityQueue queue = NULL;
+    logEnter(fName);
     for (size_t i = 0; i < len; i++) {
         if (count[(size_t) str[i]] == NULL){
             count[(size_t) str[i]] = (mapNode*) malloc(sizeof(mapNode));
@@ -13,44 +15,30 @@ errorId_t creteMap(char* str, size_t len) {
         else {
             count[(size_t) str[i]]->val++;
         }
-    }/*
-    for(int i=0; i<256; i++){
-        if (count[i] != NULL){
-            printf("%c: %u ",count[i]->key,count[i]->val);
-        }
-    }*/
-    puts("");
-    createPeriorityQueue(&queue, count);
+    }
+    createPeriorityQueue(queue, count);
     for (size_t i = 0; i < len; i++){
         if(count[i] != NULL) {
             free(count[i]);
         }
     }
-    //createVector(&vect, count);
-    //printVector(vect);
-    print(queue);
-    //sort(&vect);
-    //printVector(vect);
-    err = freeQueue(&queue);
+    print(*queue);
+    logLeave(fName);
     return err;
-#if 0
-    map newMap = NULL;
-    errorId_t status = SUCCESS;
-    size_t index = 0;
-    while ((index < len) && (status == SUCCESS)){
-        
-    }
-#endif
 }
 
-errorId_t createHuffmanTree(huffmanTree* tree, const char* filePath){
+errorId_t encode(huffmanTree* tree, const char* filePath){
+    const char fName[] = "encode";
     errorId_t status = SUCCESS;
     FILE *filePtr = NULL;
     size_t fileSize = 0;
     char* str = NULL;
-    tree = (huffmanTree*) (sizeof(huffmanTree));
-    if (tree != NULL) {
-        //TODO
+    periorityQueue queue = NULL;
+    logEnter(fName);
+    tree = (huffmanTree*) malloc(sizeof(huffmanTree));
+    if (tree == NULL) {
+        status = NULL_POINTER_ERROR;
+        logError(status, "NULL Tree in %s",fName);
     }
     filePtr = fopen(filePath, "r");
     if (filePtr == NULL) {
@@ -78,17 +66,24 @@ errorId_t createHuffmanTree(huffmanTree* tree, const char* filePath){
         str[index] = '\0';
     }
     if (status == SUCCESS) {
-        status = creteMap(str, fileSize);
+        status = createQueue(&queue,str, fileSize);
     }
+    /* create the huffman encoding tree */
+    if (status == SUCCESS) {
+        //TODO
+    }
+    fclose(filePtr);
+    logLeave(fName);
     return status;
 }
 
 errorId_t createVector(vector* vect, mapNode* count[256]){
-    puts("create vect");
+    const char fName[] = "createVector";
     errorId_t err = SUCCESS;
     vectorNode* currentNode = NULL;
     size_t index = 0;
     *vect = NULL;
+    logEnter(fName);
     while ((err == SUCCESS) && (index < 256)){
         if (count[index] != NULL) {
             if(*vect == NULL) {
@@ -116,24 +111,28 @@ errorId_t createVector(vector* vect, mapNode* count[256]){
         }
         index++;
     }
+    logLeave(fName);
     return err;
 }
 
 void printVector(vector vect) {
-    puts("print vector");
+    const char fName[] = "printVector";
     vectorNode* currentNode = vect;
+    logEnter(fName);
     while (currentNode != NULL){
         printf("%c: %u ", currentNode->val->key, currentNode->val->val);
         currentNode = currentNode->next;
     }
-    puts("");
+    logLeave(fName);
 }
 
 errorId_t sort(vector* vect){
+    const char fName[] = "sort";
     errorId_t err = SUCCESS;
     bool isSorted = false;
     if(vect == NULL) {
         err = NULL_POINTER_ERROR;
+        logError(err,"null pointer in %s",fName);
     }
     while ((err == SUCCESS) && (isSorted == false)) {
         isSorted = true;
@@ -154,6 +153,6 @@ errorId_t sort(vector* vect){
         }
 
     }
+    logLeave(fName);
     return err;
-    
 }
