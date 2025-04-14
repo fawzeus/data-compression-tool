@@ -106,7 +106,7 @@ errorId_t pop(periorityQueue* queue, huffmanTree* topNode) {
     return status;
 }
 
-errorId_t size(periorityQueue queue, uint32* dataLen) {
+errorId_t getQueueSize(periorityQueue queue, uint32* dataLen) {
     const char fName[] = "size";
     errorId_t err = SUCCESS;
     logEnter(fName);
@@ -154,6 +154,8 @@ errorId_t createPeriorityQueue(periorityQueue* queue, mapNode* count[256]) {
             if (status == SUCCESS) {
                 *newNode->ascii = count[mapIndex]->key;
                 newNode->count = count[mapIndex]->val;
+                newNode->leftChild = NULL;
+                newNode->rightChild = NULL;
             }
             if (status == SUCCESS) {
                 status = push(queue, newNode);

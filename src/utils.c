@@ -1,6 +1,7 @@
 #include "utils.h"
 #include "periorityqueue.h"
 #include "logger.h"
+#include "huffmantree.h"
 errorId_t createQueue(periorityQueue* queue, char* str, size_t len) {
     const char fName[] = "createQueue";
     errorId_t err = SUCCESS;
@@ -35,11 +36,6 @@ errorId_t encode(huffmanTree* tree, const char* filePath){
     char* str = NULL;
     periorityQueue queue = NULL;
     logEnter(fName);
-    tree = (huffmanTree*) malloc(sizeof(huffmanTree));
-    if (tree == NULL) {
-        status = NULL_POINTER_ERROR;
-        logError(status, "NULL Tree in %s",fName);
-    }
     filePtr = fopen(filePath, "r");
     if (filePtr == NULL) {
         status = FILE_OPENING_ERROR;
@@ -56,6 +52,7 @@ errorId_t encode(huffmanTree* tree, const char* filePath){
             status = NULL_POINTER_ERROR;
         }
     }
+    // copy file content into str
     if (status == SUCCESS) {
         char ch = EOF;
         size_t index = 0;
@@ -65,14 +62,15 @@ errorId_t encode(huffmanTree* tree, const char* filePath){
         //add end of string char
         str[index] = '\0';
     }
+    fclose(filePtr);
     if (status == SUCCESS) {
         status = createQueue(&queue,str, fileSize);
     }
     /* create the huffman encoding tree */
     if (status == SUCCESS) {
-        //TODO
+        status = createHuffmanTree(tree, &queue);
     }
-    fclose(filePtr);
+    printf("%d\n",(*tree)->leftChild->leftChild->count);
     logLeave(fName);
     return status;
 }
