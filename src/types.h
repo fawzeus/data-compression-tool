@@ -10,7 +10,8 @@ typedef enum {
     SUCCESS = 0,
     FILE_OPENING_ERROR = 1,
     NULL_POINTER_ERROR = 2,
-    NOT_IMPLEMENTED = 3
+    NOT_IMPLEMENTED = 3,
+    UNABLE_TO_OPEN_FILE = 4
 } errorId_t;
 
 /* Huffman Tree */
@@ -55,5 +56,13 @@ struct vectorNode{
 };
 
 typedef vectorNode* vector;
+
+typedef struct byteBuffer byteBuffer;
+
+struct byteBuffer {
+    uint8* array_;
+    uint32 bufferMaxSize;
+    uint32 bufferSize;
+};
 
 #endif

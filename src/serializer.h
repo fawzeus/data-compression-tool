@@ -1,0 +1,21 @@
+#ifndef SERIALIZER_H
+#define SERIALIZER_H
+#include <stdio.h>
+#include "types.h"
+
+errorId_t serializeTree(huffmanTree tree);
+errorId_t tlvSerialize(huffmanNode* node, byteBuffer* bb);
+errorId_t byteBufferCreate(byteBuffer* bb, uint32 bufferSize);
+void byteBufferDestroy(byteBuffer* bb);
+void tlvBufferAppend(byteBuffer* bb, uint32 tag, const uint8* tagVal, uint32 tagLen);
+/**
+ * write a given int inside a buffer of a given size;
+ *
+ * @param input_int: an unsigned int that holds the value to be converted
+ * @param output_buffer: the buffer where you wanna write the value of input_int
+ * @param size: the number of bytes where u wanna write the given value
+ * @return void.
+ */
+void convertIntIntoByteBuffer(uint32 input_int, uint8* output_buffer, size_t size);
+
+#endif
