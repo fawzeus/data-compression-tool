@@ -17,5 +17,7 @@ void tlvBufferAppend(byteBuffer* bb, const uint8_t* tag, const uint8_t* tagVal, 
  * @return void.
  */
 void convertIntIntoByteBuffer(uint32 input_int, uint8* output_buffer, size_t size);
-
+errorId_t deserializeTree(huffmanTree* tree, byteBuffer* bb);
+errorId_t parseTlvTreeData(byteBuffer* bb, periorityQueue* queue);
+void tlvDecode(uint8** bufferArray, uint8** tag, size_t* tagLen, uint8** val, size_t* valLen, size_t* bufferSize);
 #endif

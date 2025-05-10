@@ -155,3 +155,28 @@ void convertIntIntoByteBuffer(uint32 input_int, uint8* output_buffer, size_t siz
     }
 }
 
+errorId_t deserializeTree(huffmanTree* tree, byteBuffer* bb) {
+    errorId_t status = NOT_IMPLEMENTED;
+    return status;
+}
+
+errorId_t parseTlvTreeData(byteBuffer* bb, periorityQueue* queue) {
+    errorId_t status = NOT_IMPLEMENTED;
+    return status;
+}
+
+void tlvDecode(uint8** bufferArray, uint8** tag, size_t* tagLen, uint8** val, size_t* valLen, size_t* bufferSize) {
+    errorId_t status = SUCCESS;
+    assert( bufferArray != NULL && *bufferArray != NULL);
+    *tag = *bufferArray;
+    *tagLen = 2U;
+    *bufferArray += 2;
+    *bufferSize -= 2;
+    *valLen = ((size_t)(*bufferArray)[0] << 8) | (*bufferArray)[1];
+    *bufferArray += 2;
+    *bufferSize -= 2;
+    *val = *bufferArray;
+    *bufferArray += *valLen;
+    *bufferSize -= *valLen;
+}
+
