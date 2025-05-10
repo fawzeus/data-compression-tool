@@ -2,10 +2,14 @@
 #include "periorityqueue.h"
 #include "logger.h"
 #include "huffmantree.h"
+
+/* size of map */
+#define MAP_LENGTH  256U
+
 errorId_t createQueue(periorityQueue* queue, char* str, size_t len) {
     const char fName[] = "createQueue";
     errorId_t err = SUCCESS;
-    mapNode* count[256] = {NULL};
+    mapNode* count[MAP_LENGTH] = {NULL};
     logEnter(fName);
     for (size_t i = 0; i < len; i++) {
         if (count[(size_t) str[i]] == NULL){
@@ -18,7 +22,7 @@ errorId_t createQueue(periorityQueue* queue, char* str, size_t len) {
         }
     }
     createPeriorityQueue(queue, count);
-    for (size_t i = 0; i < len; i++){
+    for (size_t i = 0; i < MAP_LENGTH; i++){
         if(count[i] != NULL) {
             free(count[i]);
         }

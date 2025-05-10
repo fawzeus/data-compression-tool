@@ -6,7 +6,8 @@ CC = gcc
 #  -Wextra    - enables extra warnings
 #  -Wpedantic - ensures strict compliance with the C standard
 #  -Werror    - treats all warnings as errors
-CFLAGS  = -Wall -Wextra -Wpedantic -Werror
+#  -g         - includes debug information for gdb
+CFLAGS  = -Wall -Wextra -Wpedantic -Werror -g
 
 SOURCE = src/*.c
 

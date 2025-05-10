@@ -55,6 +55,7 @@ errorId_t serializeTree(huffmanTree tree) {
     for (uint32 i=0; i < bb.bufferSize; i++){
         fprintf(file,"%02X",bb.array_[i]);
     }
+    byteBufferDestroy(&bb);
     fclose(file);
     logLeave(fName);
     return status;
@@ -108,6 +109,7 @@ errorId_t byteBufferCreate(byteBuffer* bb, uint32 bufferSize) {
 }
 
 void byteBufferDestroy(byteBuffer* bb) {
+    assert(bb != NULL);
     free(bb->array_);
     bb->array_ = NULL;
     bb->bufferMaxSize = 0;
@@ -125,7 +127,14 @@ void tlvBufferAppend(byteBuffer* bb, const uint8_t* tag, const uint8_t* tagVal, 
     assert(bb != NULL);
     assert(tag != NULL);
     assert(tagVal != NULL);
-    assert(bb->bufferSize + 2 + 2 + tagLen <= bb->bufferMaxSize);  // tag (2) + length (2) + value
+    // 8 is defined as unsigned here
+    if ((bb->bufferSize) < (tagLen + 8U)) {
+        uint8* oldBuffer_array = bb->array_;
+        bb->bufferMaxSize += tagLen + 8U;
+        bb->array_ = (uint8*) malloc(bb->bufferMaxSize *sizeof(uint8));
+        memcpy(bb->array_, oldBuffer_array, bb->bufferSize);
+        free(oldBuffer_array);
+    }
 
     // Append 2-byte tag
     memcpy(bb->array_ + bb->bufferSize, tag, 2);
