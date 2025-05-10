@@ -15,5 +15,5 @@ A simple data compressing tool written in C. This project uses **Huffman encodin
 
 1. Compile the program:
    ```bash
-   make -s
+   make -s && ./build/compressor
    ```
