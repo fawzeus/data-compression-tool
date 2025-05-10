@@ -7,7 +7,7 @@ errorId_t serializeTree(huffmanTree tree);
 errorId_t tlvSerialize(huffmanNode* node, byteBuffer* bb);
 errorId_t byteBufferCreate(byteBuffer* bb, uint32 bufferSize);
 void byteBufferDestroy(byteBuffer* bb);
-void tlvBufferAppend(byteBuffer* bb, uint32 tag, const uint8* tagVal, uint32 tagLen);
+void tlvBufferAppend(byteBuffer* bb, const uint8_t* tag, const uint8_t* tagVal, uint16_t tagLen);
 /**
  * write a given int inside a buffer of a given size;
  *

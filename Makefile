@@ -22,4 +22,5 @@ $(TARGET): $(SOURCE)
 clean:
 	rm -f $(TARGET)
 	rm -rf logs/*
+	rm -rf out/*
 	@echo "Logs and target have been cleaned."

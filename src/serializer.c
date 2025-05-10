@@ -8,13 +8,29 @@
 
 #define TLV_BUFFER_MAX_SIZE 4096
 
-#define TREE_ROOT    0xDF01  // Root of the tree
-#define LEFT_CHILD   0xDF02  // Left child node
-#define RIGHT_CHILD  0xDF03  // Right child node
-#define ASCII_VALUE  0xDF04  // ASCII character (for leaves)
-#define COUNT_VALUE  0xDF05  // Frequency count (for any node)
+#define TREE_ROOT        "\xDF\x01"  // Root Node
+#define INTERNAL_NODE    "\xDF\x02"  // Internal Node
+#define LEAF_NODE        "\xDF\x03"  // Leaf node
+#define ASCII_VALUE      "\xDF\x04"  // ASCII character (for leaves)
+#define COUNT_VALUE      "\xDF\x05"  // Frequency count (for any node)
+
+void printTree(huffmanNode* root, int level) {
+    if (root == NULL) return;
+     // Print current node
+    if (root->ascii != NULL) {
+        printf("'%c' (%d)\n", *(root->ascii), root->count);
+    } else {
+        printf("[%d]\n", root->count);
+    }
+    // Print right subtree
+    printTree(root->leftChild, level + 1);
+
+    // Print left subtree
+    printTree(root->rightChild, level + 1);
+}
 
 errorId_t serializeTree(huffmanTree tree) {
+    printTree(tree,0);
     errorId_t status = SUCCESS;
     const char fName[] = "serializeTree";
     byteBuffer bb;
@@ -37,7 +53,7 @@ errorId_t serializeTree(huffmanTree tree) {
         status = tlvSerialize(tree, &bb);
     }
     for (uint32 i=0; i < bb.bufferSize; i++){
-        fprintf(file,"%c",bb.array_[i]);
+        fprintf(file,"%02X",bb.array_[i]);
     }
     fclose(file);
     logLeave(fName);
@@ -48,29 +64,35 @@ errorId_t serializeTree(huffmanTree tree) {
 errorId_t tlvSerialize(huffmanNode* node, byteBuffer* bb) {
     errorId_t status = SUCCESS;
     const char fName[] = "tlvSerialize";
-    uint8 tmpBuffer[4];
+    uint8 tmpBuffer[2] = {0};
     logEnter(fName);
-    assert(node != NULL);
-    convertIntIntoByteBuffer(node->count,tmpBuffer,4);
-    tlvBufferAppend(bb, COUNT_VALUE, tmpBuffer, 4);
-    if (node->ascii != NULL) {
-        tlvBufferAppend(bb, ASCII_VALUE, (uint8*)node->ascii, 1);
+    if (node !=NULL){
+        convertIntIntoByteBuffer(node->count,tmpBuffer, 2);
+        if (node->ascii != NULL) {
+            byteBuffer wrapper;
+            byteBufferCreate(&wrapper, TLV_BUFFER_MAX_SIZE);
+            tlvBufferAppend(&wrapper, (uint8*) COUNT_VALUE, tmpBuffer, 2);
+            tlvBufferAppend(&wrapper, (uint8*) ASCII_VALUE, (uint8*)node->ascii, 1);
+            tlvBufferAppend(bb, (uint8*) LEAF_NODE, wrapper.array_, wrapper.bufferSize);
+            byteBufferDestroy(&wrapper);
+        }
+        else {
+            byteBuffer wrapper;
+            byteBufferCreate(&wrapper, TLV_BUFFER_MAX_SIZE);
+            tlvBufferAppend(&wrapper, (uint8*) COUNT_VALUE, tmpBuffer, 2);
+            tlvBufferAppend(bb, (uint8*) INTERNAL_NODE, wrapper.array_, wrapper.bufferSize);
+            byteBufferDestroy(&wrapper);
+        }
+        if(status == SUCCESS ) {
+            status = tlvSerialize(node->leftChild, bb);
+        }
+        if(status == SUCCESS) {
+            status = tlvSerialize(node->rightChild, bb);
+        }
+    } else {
+        uint8 tmpBuffer[1] = {0};
+        tlvBufferAppend(bb, (uint8*) LEAF_NODE, tmpBuffer, 0);
     }
-    if(status == SUCCESS && node->leftChild != NULL) {
-        byteBuffer left;
-        status = byteBufferCreate(&left, TLV_BUFFER_MAX_SIZE);
-        tlvSerialize(node->leftChild, &left);
-        tlvBufferAppend(bb, LEFT_CHILD, left.array_, left.bufferSize);
-        byteBufferDestroy(&left);
-    }
-    if(status == SUCCESS && node->rightChild != NULL) {
-        byteBuffer right;
-        status = byteBufferCreate(&right, TLV_BUFFER_MAX_SIZE);
-        tlvSerialize(node->rightChild, &right);
-        tlvBufferAppend(bb, RIGHT_CHILD, right.array_, right.bufferSize);
-        byteBufferDestroy(&right);
-    }
-    logLeave(fName);
     return status;
 }
 
@@ -92,33 +114,30 @@ void byteBufferDestroy(byteBuffer* bb) {
     bb->bufferSize = 0;
 }
 
-void intToHexStr(uint32 value, char* output, size_t width) {
-    assert(output != NULL);
-    snprintf(output, width + 1, "%0*X", (int)width, value);
+void intToHexBytes(uint32_t value, uint8_t* output, size_t width) {
+    for (int i = width - 1; i >= 0; --i) {
+        uint8_t nibble = (value >> (4 * i)) & 0xF;
+        output[width - 1 - i] = (nibble < 10) ? ('0' + nibble) : ('A' + nibble - 10);
+    }
 }
 
-void tlvBufferAppend(byteBuffer* bb, uint32 tag, const uint8* tagVal, uint32 tagLen) {
-    assert(bb->bufferSize + tagLen + 6 < bb->bufferMaxSize);
+void tlvBufferAppend(byteBuffer* bb, const uint8_t* tag, const uint8_t* tagVal, uint16_t tagLen) {
+    assert(bb != NULL);
+    assert(tag != NULL);
+    assert(tagVal != NULL);
+    assert(bb->bufferSize + 2 + 2 + tagLen <= bb->bufferMaxSize);  // tag (2) + length (2) + value
 
-    char tagStr[5];      // 4 hex digits + null terminator
-    char lenStr[5];      // up to 4 hex digits + null terminator (supporting >255 sizes)
-    
-    intToHexStr(tag, tagStr, 4);     // e.g., DF05
-    intToHexStr(tagLen, lenStr, 4);  // e.g., 0004
+    // Append 2-byte tag
+    memcpy(bb->array_ + bb->bufferSize, tag, 2);
+    bb->bufferSize += 2;
 
-    // Append tag as ASCII chars (4 bytes)
-    memcpy(bb->array_ + bb->bufferSize, tagStr, 4);
-    bb->bufferSize += 4;
+    // Append 1-byte length (big-endian)
+    bb->array_[bb->bufferSize++] = tagLen & 0xFF;
 
-    // Append tagLen as ASCII chars (4 bytes)
-    memcpy(bb->array_ + bb->bufferSize, lenStr, 4);
-    bb->bufferSize += 4;
-
-    // Append tag value (raw bytes, or you can also convert these to hex ASCII if desired)
+    // Append value
     memcpy(bb->array_ + bb->bufferSize, tagVal, tagLen);
     bb->bufferSize += tagLen;
 }
-
 
 void convertIntIntoByteBuffer(uint32 input_int, uint8* output_buffer, size_t size) {
     assert(output_buffer != NULL);

@@ -70,7 +70,6 @@ errorId_t encode(huffmanTree* tree, const char* filePath){
     if (status == SUCCESS) {
         status = createHuffmanTree(tree, &queue);
     }
-    printf("%d\n",(*tree)->leftChild->leftChild->count);
     logLeave(fName);
     return status;
 }

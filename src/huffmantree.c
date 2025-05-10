@@ -32,13 +32,10 @@ errorId_t createHuffmanTree(huffmanTree* tree, periorityQueue* queue){
         }
         if (status == SUCCESS) {
             status = getQueueSize(*queue, &queueSize);
-            printf("queue size is :%u\n",queueSize);
         }
     }
     if (status == SUCCESS) {
-        puts("here");
         status = top(*queue,tree);
-        puts("here");
     }
     logLeave(fName);
     return status;

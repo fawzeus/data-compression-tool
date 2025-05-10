@@ -10,6 +10,7 @@ static errorId_t heapify(periorityQueue* queue) {
     logEnter(fName);
     /* if the queue is empty its already sorted */
     if (queue == NULL || (*queue)->next == NULL) {
+        logLeave(fName);
         return error;
     }
     while ((isSorted == false) && (error == SUCCESS)) {
@@ -128,7 +129,6 @@ errorId_t print(periorityQueue queue) {
     queueNode* currentNode = queue;
     logEnter(fName);
     while (currentNode != NULL) {
-        printf("%c: %u\n",*currentNode->val->ascii,currentNode->val->count);
         currentNode = currentNode->next;
     }
     logLeave(fName);
