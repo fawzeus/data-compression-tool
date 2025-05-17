@@ -55,6 +55,7 @@ errorId_t serializeTree(huffmanTree tree) {
     for (uint32 i=0; i < bb.bufferSize; i++){
         fprintf(file,"%02X",bb.array_[i]);
     }
+    deserializeTree(&bb);
     byteBufferDestroy(&bb);
     fclose(file);
     logLeave(fName);
@@ -154,27 +155,51 @@ void convertIntIntoByteBuffer(uint32 input_int, uint8* output_buffer, size_t siz
         output_buffer[size - i - 1] = (input_int >> i * 8) & 0xFF;
     }
 }
+static void printHex(const uint8* data, size_t len) {
+    for (size_t i = 0; i < len; ++i) {
+        printf("%02X", data[i]);
+        if (i < len - 1) printf(" ");
+    }
+}
+errorId_t deserializeTree(byteBuffer* bb) {
+    errorId_t status = SUCCESS;
+    uint8* ptr = bb->array_;
+    size_t remainingSize = bb->bufferSize;
 
-errorId_t deserializeTree(huffmanTree* tree, byteBuffer* bb) {
-    errorId_t status = NOT_IMPLEMENTED;
+    while (remainingSize > 0) {
+        uint8* tag = NULL;
+        uint8* val = NULL;
+        size_t tagLen = 0;
+        size_t valLen = 0;
+
+        tlvDecode(&ptr, &tag, &tagLen, &val, &valLen, &remainingSize);
+
+        printf("Tag: ");
+        printHex(tag, tagLen);
+        printf(" | TagLen: %zu | ValLen: %zu | Val: ", tagLen, valLen);
+        printHex(val, valLen);
+        printf("\n");
+    }
+
     return status;
 }
 
 errorId_t parseTlvTreeData(byteBuffer* bb, periorityQueue* queue) {
     errorId_t status = NOT_IMPLEMENTED;
+    assert(bb != NULL);
+    assert(queue != NULL);
     return status;
 }
 
 void tlvDecode(uint8** bufferArray, uint8** tag, size_t* tagLen, uint8** val, size_t* valLen, size_t* bufferSize) {
-    errorId_t status = SUCCESS;
     assert( bufferArray != NULL && *bufferArray != NULL);
     *tag = *bufferArray;
     *tagLen = 2U;
     *bufferArray += 2;
     *bufferSize -= 2;
-    *valLen = ((size_t)(*bufferArray)[0] << 8) | (*bufferArray)[1];
-    *bufferArray += 2;
-    *bufferSize -= 2;
+    *valLen = (size_t) *bufferArray[0];
+    *bufferArray += 1;
+    *bufferSize -= 1;
     *val = *bufferArray;
     *bufferArray += *valLen;
     *bufferSize -= *valLen;
