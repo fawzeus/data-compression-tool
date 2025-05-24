@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
+#include "periorityqueue.h"
 /************************     defines     ************************/
 #define OUTPUT_FILE "out/tree.txt"
 
@@ -55,7 +56,27 @@ errorId_t serializeTree(huffmanTree tree) {
     for (uint32 i=0; i < bb.bufferSize; i++){
         fprintf(file,"%02X",bb.array_[i]);
     }
-    deserializeTree(&bb);
+    periorityQueue queue = NULL;
+    createHuffmanQueueFromTlv(&bb, &queue);
+    uint32 len = 0;
+    getQueueSize(queue, &len);
+    printf("queue, len is %u\n",len);
+    queueNode* current = queue;
+    while (current != NULL)
+    {
+        if (current->val == NULL) {
+            printf("NULL ");
+        }
+        else {
+            printf("val : %u ",current->val->count);
+            if(current->val->ascii != NULL) {
+                printf("ascii :%c ",*current->val->ascii);
+            }
+        }
+        current = current->next;
+    }
+    puts("");
+    
     byteBufferDestroy(&bb);
     fclose(file);
     logLeave(fName);
@@ -70,21 +91,17 @@ errorId_t tlvSerialize(huffmanNode* node, byteBuffer* bb) {
     logEnter(fName);
     if (node !=NULL){
         convertIntIntoByteBuffer(node->count,tmpBuffer, 2);
+        byteBuffer wrapper;
+        byteBufferCreate(&wrapper, TLV_BUFFER_MAX_SIZE);
+        tlvBufferAppend(&wrapper, (uint8*) COUNT_VALUE, tmpBuffer, 2);
         if (node->ascii != NULL) {
-            byteBuffer wrapper;
-            byteBufferCreate(&wrapper, TLV_BUFFER_MAX_SIZE);
-            tlvBufferAppend(&wrapper, (uint8*) COUNT_VALUE, tmpBuffer, 2);
             tlvBufferAppend(&wrapper, (uint8*) ASCII_VALUE, (uint8*)node->ascii, 1);
             tlvBufferAppend(bb, (uint8*) LEAF_NODE, wrapper.array_, wrapper.bufferSize);
-            byteBufferDestroy(&wrapper);
         }
         else {
-            byteBuffer wrapper;
-            byteBufferCreate(&wrapper, TLV_BUFFER_MAX_SIZE);
-            tlvBufferAppend(&wrapper, (uint8*) COUNT_VALUE, tmpBuffer, 2);
             tlvBufferAppend(bb, (uint8*) INTERNAL_NODE, wrapper.array_, wrapper.bufferSize);
-            byteBufferDestroy(&wrapper);
         }
+        byteBufferDestroy(&wrapper);
         if(status == SUCCESS ) {
             status = tlvSerialize(node->leftChild, bb);
         }
@@ -95,6 +112,7 @@ errorId_t tlvSerialize(huffmanNode* node, byteBuffer* bb) {
         uint8 tmpBuffer[1] = {0};
         tlvBufferAppend(bb, (uint8*) LEAF_NODE, tmpBuffer, 0);
     }
+    logLeave(fName);
     return status;
 }
 
@@ -161,12 +179,11 @@ static void printHex(const uint8* data, size_t len) {
         if (i < len - 1) printf(" ");
     }
 }
-errorId_t deserializeTree(byteBuffer* bb) {
+errorId_t createHuffmanQueueFromTlv(byteBuffer* bb, periorityQueue* queue) {
     errorId_t status = SUCCESS;
     uint8* ptr = bb->array_;
     size_t remainingSize = bb->bufferSize;
-
-    while (remainingSize > 0) {
+    while ((status == SUCCESS) && (ptr != NULL) && (remainingSize > 0)) {
         uint8* tag = NULL;
         uint8* val = NULL;
         size_t tagLen = 0;
@@ -179,6 +196,61 @@ errorId_t deserializeTree(byteBuffer* bb) {
         printf(" | TagLen: %zu | ValLen: %zu | Val: ", tagLen, valLen);
         printHex(val, valLen);
         printf("\n");
+
+        switch (tag[0])
+        {
+        case 0xDF:
+            switch (tag[1])
+            {
+            if (tag == NULL || tagLen < 2 || val == NULL) {
+                status = INVALID_TAG_ERROR;
+                break;
+            }
+            case 0x2: {
+                uint8* subVal = NULL;
+                size_t subValLen = 0;
+                if ((val != NULL) && (valLen != 0)) {
+                    huffmanNode* node = (huffmanNode*) malloc(sizeof(huffmanNode));
+                    tlvGetTagValue(val, valLen, (uint8*) "\xDF\x05", 2, &subVal, &subValLen);
+                    convertBufferIntoUint16(subVal, subValLen, &node ->count);
+                    node->ascii  = NULL;
+                    node->leftChild = NULL;
+                    node->rightChild = NULL;
+                    push(queue, node, false);
+                }
+                else {
+                    status = NULL_POINTER_ERROR;
+                }
+                break;
+            }
+            case 0x03: {
+                uint8* subVal = NULL;
+                size_t subValLen = 0;
+                if ((val != NULL) && (valLen != 0)) {
+                    huffmanNode* node = (huffmanNode*) malloc(sizeof(huffmanNode));
+                    node->ascii  = NULL;
+                    node->leftChild = NULL;
+                    node->rightChild = NULL;
+                    tlvGetTagValue(val, valLen, (uint8*) "\xDF\x05", 2, &subVal, &subValLen);
+                    convertBufferIntoUint16(subVal, subValLen, &node ->count);
+                    tlvGetTagValue(val, valLen, (uint8*) "\xDF\x04", 2, &subVal, &subValLen);
+                    node->ascii = (char*) malloc(sizeof(char));
+                    memcpy(node->ascii, subVal, 1);
+                    push(queue, node, false);
+                } else {
+                    push(queue, NULL, false);
+                }
+                break;
+            }
+            default:
+                status = INVALID_TAG_ERROR;
+                break;
+            }
+            break;
+        default:
+            status = INVALID_TAG_ERROR;
+            break;
+        }
     }
 
     return status;
@@ -205,3 +277,30 @@ void tlvDecode(uint8** bufferArray, uint8** tag, size_t* tagLen, uint8** val, si
     *bufferSize -= *valLen;
 }
 
+void tlvGetTagValue( uint8* buffer, size_t bufferLen, uint8* tag, size_t tagLen, uint8** val, size_t* valLen) {
+    assert(buffer != NULL);
+    assert(tag != NULL);
+    assert(tagLen != 0);
+    assert(bufferLen != 0);
+
+    char fName[] = "tlvGetTagValue";
+    bool isFound = false;
+    size_t index = 0;
+    logEnter(fName);
+    while((isFound == false) && (index < bufferLen)) {
+        if(memcmp(buffer + index, tag, tagLen) == 0) {
+            *valLen = buffer[index+ tagLen];
+            *val = buffer + (index + tagLen + 1);
+            isFound = true;
+        }
+        index += 1;
+    }
+    logLeave(fName);
+}
+
+void convertBufferIntoUint16(uint8* val, size_t valLen, uint32* outputValue) {
+    *outputValue = 0;
+    for (size_t i = 0; i < valLen; i++) {
+        *outputValue += val[i]<< (8*(valLen - i - 1));
+    }
+}

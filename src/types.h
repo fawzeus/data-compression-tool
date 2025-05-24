@@ -12,7 +12,8 @@ typedef enum {
     FILE_OPENING_ERROR = 1,
     NULL_POINTER_ERROR = 2,
     NOT_IMPLEMENTED = 3,
-    UNABLE_TO_OPEN_FILE = 4
+    UNABLE_TO_OPEN_FILE = 4,
+    INVALID_TAG_ERROR = 5,
 } errorId_t;
 
 /* Huffman Tree */

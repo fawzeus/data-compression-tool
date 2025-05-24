@@ -54,7 +54,7 @@ errorId_t isEmpty(periorityQueue queue, bool* isEmptyQueue){
     return error;
 }
 
-errorId_t push(periorityQueue* queue, huffmanNode* node) {
+errorId_t push(periorityQueue* queue, huffmanNode* node, bool doHeapifying) {
     const char fName[] = "push";
     errorId_t status = SUCCESS;
     bool isEmptyQueue = false;
@@ -70,7 +70,7 @@ errorId_t push(periorityQueue* queue, huffmanNode* node) {
         newNode->val = node;
         *queue = newNode;
     }
-    if (status == SUCCESS) {
+    if ((status == SUCCESS) && (doHeapifying == true)) {
         status = heapify(queue);
     }
     logLeave(fName);
@@ -158,7 +158,7 @@ errorId_t createPeriorityQueue(periorityQueue* queue, mapNode* count[256]) {
                 newNode->rightChild = NULL;
             }
             if (status == SUCCESS) {
-                status = push(queue, newNode);
+                status = push(queue, newNode, true);
             }
         }
     }

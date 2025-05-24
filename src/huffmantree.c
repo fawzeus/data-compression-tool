@@ -28,7 +28,7 @@ errorId_t createHuffmanTree(huffmanTree* tree, periorityQueue* queue){
             newNode->rightChild = node2;
         }
         if (status == SUCCESS) {
-            status = push(queue,newNode);
+            status = push(queue, newNode, true);
         }
         if (status == SUCCESS) {
             status = getQueueSize(*queue, &queueSize);
