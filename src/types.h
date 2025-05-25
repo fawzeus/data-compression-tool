@@ -2,6 +2,7 @@
 #define TYPES_H
 
 #include <stdint.h>
+#include <stdlib.h>
 
 typedef uint8_t  uint8;
 typedef uint16_t uint16;
@@ -21,10 +22,10 @@ typedef struct huffmanNode huffmanNode;
 typedef huffmanNode* huffmanTree;
 
 struct huffmanNode{
-    huffmanNode* leftChild;
-    huffmanNode* rightChild;
     uint32 count;
-    char* ascii;     
+    char* ascii;
+    huffmanNode* leftChild;
+    huffmanNode* rightChild;     
 };
 
 /* periority Queue */
@@ -65,6 +66,20 @@ struct byteBuffer {
     uint8* array_;
     uint32 bufferMaxSize;
     uint32 bufferSize;
+};
+
+typedef struct stackNode stackNode_t;
+
+struct stackNode {
+    huffmanNode* val;
+    stackNode_t* next;
+};
+
+typedef struct stack stack_t;
+
+struct stack {
+    stackNode_t* head;
+    size_t size;
 };
 
 #endif

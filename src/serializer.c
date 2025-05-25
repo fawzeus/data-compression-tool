@@ -32,12 +32,20 @@ void printTree(huffmanNode* root, int level) {
 
 errorId_t serializeTree(huffmanTree tree) {
     printTree(tree,0);
+    huffmanNode a = {.count = 1, .ascii = "A", .leftChild = NULL, .rightChild = NULL};
+    huffmanNode b = {.count = 1, .ascii = "B", .leftChild = NULL, .rightChild = NULL};
+    huffmanNode c = {.count = 2, .ascii = "C", .leftChild = NULL, .rightChild = NULL};
+    huffmanNode d = {.count = 3, .ascii = "D", .leftChild = NULL, .rightChild = NULL};
+    huffmanNode ab = {.count = 2, .ascii = NULL, .leftChild = &a, .rightChild = &b};   // A + B
+    huffmanNode ab_c = {.count = 4, .ascii = NULL, .leftChild = &ab, .rightChild = &c}; // (A+B)+C
+    huffmanNode root = {.count = 7, .ascii = NULL, .leftChild = &ab_c, .rightChild = &d}; // ((A+B)+C)+D
+    huffmanTree testTree = &root;
     errorId_t status = SUCCESS;
     const char fName[] = "serializeTree";
     byteBuffer bb;
     FILE* file = NULL;
     logEnter(fName);
-    if (tree == NULL) {
+    if (testTree == NULL) {
         status = NULL_POINTER_ERROR;
     }
     if (status == SUCCESS) {
@@ -51,7 +59,7 @@ errorId_t serializeTree(huffmanTree tree) {
         status = byteBufferCreate(&bb, TLV_BUFFER_MAX_SIZE);
     }
     if (status == SUCCESS) {
-        status = tlvSerialize(tree, &bb);
+        status = tlvSerialize(testTree, &bb);
     }
     for (uint32 i=0; i < bb.bufferSize; i++){
         fprintf(file,"%02X",bb.array_[i]);
@@ -60,18 +68,19 @@ errorId_t serializeTree(huffmanTree tree) {
     createHuffmanQueueFromTlv(&bb, &queue);
     uint32 len = 0;
     getQueueSize(queue, &len);
-    printf("queue, len is %u\n",len);
+    printf("queue len is %u\n",len);
     queueNode* current = queue;
     while (current != NULL)
     {
         if (current->val == NULL) {
-            printf("NULL ");
+            printf("NULL \n");
         }
         else {
             printf("val : %u ",current->val->count);
             if(current->val->ascii != NULL) {
                 printf("ascii :%c ",*current->val->ascii);
             }
+            puts("");
         }
         current = current->next;
     }
@@ -202,10 +211,6 @@ errorId_t createHuffmanQueueFromTlv(byteBuffer* bb, periorityQueue* queue) {
         case 0xDF:
             switch (tag[1])
             {
-            if (tag == NULL || tagLen < 2 || val == NULL) {
-                status = INVALID_TAG_ERROR;
-                break;
-            }
             case 0x2: {
                 uint8* subVal = NULL;
                 size_t subValLen = 0;
@@ -237,8 +242,6 @@ errorId_t createHuffmanQueueFromTlv(byteBuffer* bb, periorityQueue* queue) {
                     node->ascii = (char*) malloc(sizeof(char));
                     memcpy(node->ascii, subVal, 1);
                     push(queue, node, false);
-                } else {
-                    push(queue, NULL, false);
                 }
                 break;
             }
