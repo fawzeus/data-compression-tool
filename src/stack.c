@@ -42,15 +42,15 @@ errorId_t stackTop(stack_t stack, huffmanNode *node) {
     memcpy(node, stack.head->val, sizeof(huffmanNode));
     return SUCCESS;
 }
-
-errorId_t StackPop(stack_t *stack, huffmanNode *node) {
+errorId_t stackPop(stack_t *stack, huffmanNode *node) {
     assert(stack != NULL);
     assert(node != NULL);
     assert(stack->head != NULL);
-    assert(stack->size != 0);
+    assert(stack->size > 0);
     stackNode_t* toBeDeleted = stack->head;
     memcpy(node, toBeDeleted->val, sizeof(huffmanNode));
     stack->head = stack->head->next;
+    stack->size --;
     free (toBeDeleted);
     return SUCCESS;
 }

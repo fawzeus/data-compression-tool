@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "periorityqueue.h"
+#include "stack.h"
 /************************     defines     ************************/
 #define OUTPUT_FILE "out/tree.txt"
 
@@ -306,4 +307,39 @@ void convertBufferIntoUint16(uint8* val, size_t valLen, uint32* outputValue) {
     for (size_t i = 0; i < valLen; i++) {
         *outputValue += val[i]<< (8*(valLen - i - 1));
     }
+}
+
+errorId_t createHuffmanTreeFromStoredBuffer(huffmanTree* tree, periorityQueue* queue) {
+    errorId_t status = SUCCESS;
+    bool isEmptyQueue = true;
+    stack_t stack;
+    isEmpty(*queue, &isEmptyQueue);
+    assert(isEmptyQueue != true);
+    huffmanNode* currentNode = NULL;
+    size_t stackLength = 0;
+    while ((isEmptyQueue != true) && (status == SUCCESS)) {
+        status = pop(queue, &currentNode);
+        isEmpty(*queue, &isEmptyQueue);
+        stackSize(stack, &stackLength);
+        if ((currentNode != NULL) && (currentNode->ascii != NULL)) {
+            status = stackAppend(&stack, currentNode);
+        } else if ((currentNode != NULL) &&
+                   (currentNode->ascii == NULL) &&
+                   (isStackEmpty(stack) != true) &&
+                   (stackLength >= 2)) {
+            huffmanNode* leftNode = NULL;
+            huffmanNode* rightNode = NULL;
+            stackPop(&stack, leftNode);
+            stackPop(&stack, rightNode);
+            currentNode->leftChild = leftNode;
+            currentNode->rightChild = rightNode;
+            status = stackAppend(&stack, currentNode);
+        }
+    }
+    stackSize(stack, &stackLength);
+    if ((status == SUCCESS) && (stackLength == 1)) {
+        stackPop(&stack, currentNode);
+        *tree = currentNode;
+    }
+    return status;
 }
